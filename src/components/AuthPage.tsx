@@ -38,7 +38,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     try {
       if (isAdmin) {
-        // Admin Login
+        // Admin Login with password verification for muftee@gmail.com
+        if (email.toLowerCase() === 'muftee@gmail.com' && password !== 'Okayadmin421!$') {
+          setError('Invalid password for administrative account muftee@gmail.com.');
+          return;
+        }
         const user = await loginUser(email, 'admin');
         onAuthSuccess(user);
       } else {
@@ -238,10 +242,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             {/* Login / Action Button */}
             <button
               type="submit"
-              className={`group flex w-full items-center justify-center rounded-xl py-3 px-4 text-sm font-semibold text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+              className={`group flex w-full items-center justify-center rounded-xl py-3 px-4 text-sm font-semibold shadow-md transition-all backdrop-blur-md border cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isAdmin 
-                  ? 'bg-rose-600 hover:bg-rose-500 focus:ring-rose-500' 
-                  : 'bg-stone-900 hover:bg-stone-800 focus:ring-stone-950'
+                  ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 border-rose-500/30 focus:ring-rose-500' 
+                  : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 border-emerald-500/30 focus:ring-emerald-500'
               }`}
             >
               <span>
@@ -262,7 +266,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   setIsSignUp(!isSignUp);
                   setError('');
                 }}
-                className="font-bold text-emerald-700 hover:text-emerald-800 transition-colors cursor-pointer"
+                className="font-bold text-emerald-750 hover:text-emerald-800 transition-colors cursor-pointer"
               >
                 {isSignUp ? 'Already have a citizen account? Log in' : "Don't have a citizen account? Sign up now"}
               </button>
@@ -277,7 +281,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             <button
               type="button"
               onClick={onToggleRole}
-              className="inline-flex items-center justify-center self-center rounded-xl border px-4 py-2 font-bold transition-all border-emerald-100 bg-emerald-50/50 text-emerald-700 hover:bg-emerald-100 cursor-pointer"
+              className="inline-flex items-center justify-center self-center rounded-xl border px-4 py-2 font-bold transition-all backdrop-blur-sm border-emerald-500/20 bg-emerald-500/5 text-emerald-700 hover:bg-emerald-500/15 cursor-pointer shadow-xs"
             >
               {isAdmin ? (
                 <>
@@ -291,40 +295,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </>
               )}
             </button>
-          </div>
-
-          {/* Testing Shortcuts Panel */}
-          <div className="mt-8 rounded-2xl border border-stone-200 bg-stone-50/80 p-5 shadow-sm">
-            <div className="flex items-center space-x-2 text-stone-800">
-              <Info className="h-4.5 w-4.5 text-stone-500 flex-shrink-0" />
-              <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                Evaluation & Testing Shortcuts
-              </span>
-            </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-stone-500 font-medium">
-              Click either shortcut to immediately log in with realistic prepopulated claims data. Feel free to use both roles in parallel!
-            </p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => handleShortcutLogin('claimant')}
-                className="flex flex-col items-center justify-center rounded-xl border border-emerald-100 bg-white p-3 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all text-center group cursor-pointer"
-              >
-                <User className="h-5.5 w-5.5 text-emerald-600 group-hover:scale-110 transition-transform mb-1" />
-                <span className="text-xs font-bold text-stone-800 leading-none">Test Citizen</span>
-                <span className="text-[9px] text-slate-400 mt-1 font-mono">Chidi Okafor</span>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => handleShortcutLogin('admin')}
-                className="flex flex-col items-center justify-center rounded-xl border border-emerald-100 bg-white p-3 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all text-center group cursor-pointer"
-              >
-                <Shield className="h-5.5 w-5.5 text-emerald-600 group-hover:scale-110 transition-transform mb-1" />
-                <span className="text-xs font-bold text-stone-800 leading-none">Test Admin</span>
-                <span className="text-[9px] text-slate-400 mt-1 font-mono">admin@city.gov</span>
-              </button>
-            </div>
           </div>
 
         </div>

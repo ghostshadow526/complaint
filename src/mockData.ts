@@ -12,6 +12,12 @@ export const INITIAL_USERS: User[] = [
     name: 'Hon. Babatunde Balogun',
     email: 'admin@city.gov',
     role: 'admin',
+  },
+  {
+    id: 'admin-2',
+    name: 'Muftee Works Commissioner',
+    email: 'muftee@gmail.com',
+    role: 'admin',
   }
 ];
 

@@ -52,7 +52,7 @@ export const ClaimantDashboard: React.FC<ClaimantDashboardProps> = ({ currentUse
       if (updated) {
         setSelectedClaim(updated);
         const list = await getComments(updated.id);
-        setComments(list);
+        setComments(Array.isArray(list) ? list : []);
       }
     }
   };
@@ -68,7 +68,7 @@ export const ClaimantDashboard: React.FC<ClaimantDashboardProps> = ({ currentUse
     const loadComments = async () => {
       if (selectedClaim) {
         const list = await getComments(selectedClaim.id);
-        setComments(list);
+        setComments(Array.isArray(list) ? list : []);
       }
     };
     loadComments();
@@ -468,10 +468,10 @@ export const ClaimantDashboard: React.FC<ClaimantDashboardProps> = ({ currentUse
               {/* Submit button */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center rounded-xl bg-[#0c231f] py-3.5 px-4 text-sm font-bold text-white shadow-sm hover:bg-emerald-950 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 cursor-pointer"
+                className="w-full flex items-center justify-center rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 backdrop-blur-md py-3.5 px-4 text-sm font-bold shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 cursor-pointer"
               >
                 <span>Submit Civic Complaint</span>
-                <Plus className="ml-1.5 h-4 w-4" />
+                <Plus className="ml-1.5 h-4 w-4 text-emerald-600" />
               </button>
 
             </form>
@@ -544,7 +544,6 @@ export const ClaimantDashboard: React.FC<ClaimantDashboardProps> = ({ currentUse
                       key={claim.id}
                       onClick={() => {
                         setSelectedClaim(claim);
-                        setComments(getComments(claim.id));
                       }}
                       className={`group rounded-xl border p-4 transition-all cursor-pointer text-left ${
                         isCurrentlySelected

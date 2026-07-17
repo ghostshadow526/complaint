@@ -85,7 +85,7 @@ export default function App() {
           <div className="flex items-center justify-center space-x-2 text-indigo-600/80">
             <Landmark className="h-4 w-4" />
             <span className="text-xs font-bold uppercase tracking-wider">
-              MUFTASEER COMPLAINT HUB // Municipal Systems
+              MUFTASEER NAIJA COMPLAINT HUB // Municipal Systems
             </span>
           </div>
           <p className="text-[10px] text-slate-400 font-mono mt-2">

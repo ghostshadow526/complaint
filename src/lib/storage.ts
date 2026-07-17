@@ -16,44 +16,48 @@ const CLAIMS_KEY = 'civic_care_claims';
 const COMMENTS_KEY = 'civic_care_comments';
 const CURRENT_USER_KEY = 'civic_care_current_user';
 
+let isFirestoreWorking = true;
+
 export const initializeStorage = async () => {
-  // 1. If Firebase is disabled, do classic LocalStorage initialization
+  // 1. Always seed LocalStorage first as a high-fidelity local fallback
+  if (!localStorage.getItem(USERS_KEY)) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(INITIAL_USERS));
+  }
+  if (!localStorage.getItem(CLAIMS_KEY)) {
+    localStorage.setItem(CLAIMS_KEY, JSON.stringify(INITIAL_CLAIMS));
+  }
+  if (!localStorage.getItem(COMMENTS_KEY)) {
+    const defaultComments: Comment[] = [
+      {
+        id: 'comment-1',
+        claimId: 'claim-1',
+        authorName: 'Lagos Public Infrastructure Centre',
+        authorRole: 'admin',
+        text: 'Assigned to the Lagos State Ministry of Works & Infrastructure road crew for physical inspection and speed bump assessment.',
+        createdAt: '2026-07-14T10:30:00Z',
+      },
+      {
+        id: 'comment-2',
+        claimId: 'claim-3',
+        authorName: 'Chidi Okafor',
+        authorRole: 'claimant',
+        text: 'The flow is increasing, some water is starting to flood the main entrance road near Wuse Mall as well.',
+        createdAt: '2026-07-16T09:00:00Z',
+      },
+      {
+        id: 'comment-3',
+        claimId: 'claim-3',
+        authorName: 'FCT Water Board Team',
+        authorRole: 'admin',
+        text: 'FCT Water Board Emergency Maintenance Team dispatched. Crew ETA is 20 minutes.',
+        createdAt: '2026-07-16T09:15:00Z',
+      }
+    ];
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(defaultComments));
+  }
+
+  // If Firebase is disabled, we are done
   if (!isFirebaseEnabled) {
-    if (!localStorage.getItem(USERS_KEY)) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(INITIAL_USERS));
-    }
-    if (!localStorage.getItem(CLAIMS_KEY)) {
-      localStorage.setItem(CLAIMS_KEY, JSON.stringify(INITIAL_CLAIMS));
-    }
-    if (!localStorage.getItem(COMMENTS_KEY)) {
-      const defaultComments: Comment[] = [
-        {
-          id: 'comment-1',
-          claimId: 'claim-1',
-          authorName: 'Lagos Public Infrastructure Centre',
-          authorRole: 'admin',
-          text: 'Assigned to the Lagos State Ministry of Works & Infrastructure road crew for physical inspection and speed bump assessment.',
-          createdAt: '2026-07-14T10:30:00Z',
-        },
-        {
-          id: 'comment-2',
-          claimId: 'claim-3',
-          authorName: 'Chidi Okafor',
-          authorRole: 'claimant',
-          text: 'The flow is increasing, some water is starting to flood the main entrance road near Wuse Mall as well.',
-          createdAt: '2026-07-16T09:00:00Z',
-        },
-        {
-          id: 'comment-3',
-          claimId: 'claim-3',
-          authorName: 'FCT Water Board Team',
-          authorRole: 'admin',
-          text: 'FCT Water Board Emergency Maintenance Team dispatched. Crew ETA is 20 minutes.',
-          createdAt: '2026-07-16T09:15:00Z',
-        }
-      ];
-      localStorage.setItem(COMMENTS_KEY, JSON.stringify(defaultComments));
-    }
     return;
   }
 
@@ -113,29 +117,43 @@ export const initializeStorage = async () => {
     }
   } catch (err) {
     console.error('⚠️ Failed to seed initial data to Firestore:', err);
+    // Gracefully mark Firestore as not working so we fall back to LocalStorage instantly
+    isFirestoreWorking = false;
   }
 };
 
 // Users functions
 export const getUsers = async (): Promise<User[]> => {
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       const usersCol = collection(db, 'users');
       const snap = await withTimeout(getDocs(usersCol));
       const list: User[] = [];
       snap.forEach(doc => {
-        list.push(doc.data() as User);
+        const d = doc.data();
+        if (d) list.push(d as User);
       });
       return list;
     } catch (err) {
       console.error('Firestore getUsers failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
-  return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+  try {
+    const raw = localStorage.getItem(USERS_KEY);
+    const users = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(users)) {
+      return [];
+    }
+    return users;
+  } catch (err) {
+    console.error('Failed to parse users from localstorage:', err);
+    return [];
+  }
 };
 
 export const registerUser = async (name: string, email: string, role: 'claimant' | 'admin'): Promise<User> => {
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       const users = await getUsers();
       const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
@@ -152,6 +170,7 @@ export const registerUser = async (name: string, email: string, role: 'claimant'
       return newUser;
     } catch (err: any) {
       console.error('Firestore registration failed:', err);
+      isFirestoreWorking = false;
       throw err;
     }
   }
@@ -177,28 +196,32 @@ export const loginUser = async (email: string, role: 'claimant' | 'admin'): Prom
   const users = await getUsers();
   const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.role === role);
   if (!user) {
-    if (role === 'admin' && email === 'admin@city.gov') {
-      const defaultAdmin = INITIAL_USERS.find(u => u.role === 'admin')!;
-      if (isFirebaseEnabled) {
+    if (role === 'admin' && (email.toLowerCase() === 'admin@city.gov' || email.toLowerCase() === 'muftee@gmail.com')) {
+      const defaultAdmin = INITIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase()) || INITIAL_USERS.find(u => u.role === 'admin')!;
+      if (isFirebaseEnabled && isFirestoreWorking) {
         try {
           await withTimeout(setDoc(doc(db, 'users', defaultAdmin.id), defaultAdmin));
         } catch (err) {
           console.error('Firestore default admin seed failed:', err);
+          isFirestoreWorking = false;
         }
       } else {
         const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-        localUsers.push(defaultAdmin);
-        localStorage.setItem(USERS_KEY, JSON.stringify(localUsers));
+        if (!localUsers.some((u: any) => u.email.toLowerCase() === defaultAdmin.email.toLowerCase())) {
+          localUsers.push(defaultAdmin);
+          localStorage.setItem(USERS_KEY, JSON.stringify(localUsers));
+        }
       }
       return defaultAdmin;
     }
     if (role === 'claimant' && email === 'citizen@example.com') {
       const defaultClaimant = INITIAL_USERS.find(u => u.role === 'claimant')!;
-      if (isFirebaseEnabled) {
+      if (isFirebaseEnabled && isFirestoreWorking) {
         try {
           await withTimeout(setDoc(doc(db, 'users', defaultClaimant.id), defaultClaimant));
         } catch (err) {
           console.error('Firestore default claimant seed failed:', err);
+          isFirestoreWorking = false;
         }
       } else {
         const localUsers = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
@@ -228,20 +251,32 @@ export const setCurrentUser = (user: User | null) => {
 
 // Claims functions
 export const getClaims = async (): Promise<Claim[]> => {
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       const claimsCol = collection(db, 'claims');
       const snap = await withTimeout(getDocs(claimsCol));
       const list: Claim[] = [];
       snap.forEach(doc => {
-        list.push(doc.data() as Claim);
+        const d = doc.data();
+        if (d) list.push(d as Claim);
       });
       return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (err) {
       console.error('Firestore getClaims failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
-  return JSON.parse(localStorage.getItem(CLAIMS_KEY) || '[]');
+  try {
+    const raw = localStorage.getItem(CLAIMS_KEY);
+    const claims = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(claims)) {
+      return [];
+    }
+    return claims;
+  } catch (err) {
+    console.error('Failed to parse claims from localstorage:', err);
+    return [];
+  }
 };
 
 export const createClaim = async (claimData: Omit<Claim, 'id' | 'trackingNumber' | 'createdAt' | 'status'>): Promise<Claim> => {
@@ -257,12 +292,13 @@ export const createClaim = async (claimData: Omit<Claim, 'id' | 'trackingNumber'
     createdAt: new Date().toISOString(),
   };
 
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       await withTimeout(setDoc(doc(db, 'claims', newClaim.id), newClaim));
       return newClaim;
     } catch (err) {
       console.error('Firestore createClaim failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
 
@@ -277,7 +313,7 @@ export const updateClaimStatus = async (
   status: 'pending' | 'in_progress' | 'resolved', 
   notes?: string
 ): Promise<Claim> => {
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       const claimRef = doc(db, 'claims', id);
       const updateData: any = { status };
@@ -296,6 +332,7 @@ export const updateClaimStatus = async (
       return updated;
     } catch (err) {
       console.error('Firestore updateClaimStatus failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
 
@@ -323,30 +360,44 @@ export const updateClaimStatus = async (
 
 // Comments functions
 export const getComments = async (claimId?: string): Promise<Comment[]> => {
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       const commentsCol = collection(db, 'comments');
       const snap = await withTimeout(getDocs(commentsCol));
       const list: Comment[] = [];
       snap.forEach(doc => {
-        list.push(doc.data() as Comment);
+        const d = doc.data();
+        if (d) list.push(d as Comment);
       });
       if (claimId) {
         return list
-          .filter(c => c.claimId === claimId)
+          .filter(c => c && c.claimId === claimId)
           .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       }
       return list;
     } catch (err) {
       console.error('Firestore getComments failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
 
-  const allComments: Comment[] = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]');
-  if (claimId) {
-    return allComments.filter(c => c.claimId === claimId).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  try {
+    const raw = localStorage.getItem(COMMENTS_KEY);
+    const allComments: Comment[] = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(allComments)) {
+      console.error('Comments in localStorage is not an array:', allComments);
+      return [];
+    }
+    if (claimId) {
+      return allComments
+        .filter(c => c && c.claimId === claimId)
+        .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    }
+    return allComments;
+  } catch (err) {
+    console.error('Failed to parse or load comments from localstorage:', err);
+    return [];
   }
-  return allComments;
 };
 
 export const addComment = async (claimId: string, authorName: string, authorRole: 'claimant' | 'admin', text: string): Promise<Comment> => {
@@ -359,12 +410,13 @@ export const addComment = async (claimId: string, authorName: string, authorRole
     createdAt: new Date().toISOString(),
   };
 
-  if (isFirebaseEnabled) {
+  if (isFirebaseEnabled && isFirestoreWorking) {
     try {
       await withTimeout(setDoc(doc(db, 'comments', newComment.id), newComment));
       return newComment;
     } catch (err) {
       console.error('Firestore addComment failed, falling back to LocalStorage:', err);
+      isFirestoreWorking = false;
     }
   }
 

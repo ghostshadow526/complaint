@@ -44,7 +44,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
       if (updated) {
         setSelectedClaim(updated);
         const list = await getComments(updated.id);
-        setComments(list);
+        setComments(Array.isArray(list) ? list : []);
       }
     }
   };
@@ -60,7 +60,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
     const loadComments = async () => {
       if (selectedClaim) {
         const list = await getComments(selectedClaim.id);
-        setComments(list);
+        setComments(Array.isArray(list) ? list : []);
       }
     };
     loadComments();
@@ -428,7 +428,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                           key={claim.id}
                           onClick={() => {
                             setSelectedClaim(claim);
-                            setComments(getComments(claim.id));
                           }}
                           className={`hover:bg-stone-50 cursor-pointer transition-colors ${
                             isSelected ? 'bg-emerald-50/40 text-emerald-950 font-semibold' : ''
@@ -477,7 +476,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedClaim(claim);
-                                setComments(getComments(claim.id));
                               }}
                               className="rounded-lg border border-stone-200 bg-white hover:bg-stone-50 p-1.5 transition-all inline-flex items-center text-stone-600 hover:text-stone-900 cursor-pointer"
                             >
@@ -533,7 +531,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                   <button
                     disabled={selectedClaim.status === 'pending'}
                     onClick={() => handleUpdateStatus(selectedClaim.id, 'pending')}
-                    className="flex-1 rounded-xl border border-amber-200 bg-amber-50/30 px-3 py-2 text-xs font-bold text-amber-700 hover:bg-amber-100/50 disabled:opacity-40 transition-colors cursor-pointer"
+                    className="flex-1 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-500/15 disabled:opacity-40 transition-colors backdrop-blur-xs cursor-pointer shadow-xs"
                   >
                     Set Pending Review
                   </button>
@@ -541,7 +539,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                   <button
                     disabled={selectedClaim.status === 'in_progress'}
                     onClick={() => handleUpdateStatus(selectedClaim.id, 'in_progress')}
-                    className="flex-1 rounded-xl border border-emerald-250 border-emerald-100 bg-emerald-50/30 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100/50 disabled:opacity-40 transition-colors cursor-pointer"
+                    className="flex-1 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs font-bold text-emerald-850 hover:bg-emerald-500/15 disabled:opacity-40 transition-colors backdrop-blur-xs cursor-pointer shadow-xs"
                   >
                     Dispatch Review
                   </button>
@@ -648,10 +646,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
 
                   <button
                     type="submit"
-                    className="w-full flex items-center justify-center rounded-xl bg-emerald-600 py-3 px-4 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-center rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 border border-emerald-500/30 backdrop-blur-md py-3 px-4 text-xs font-bold shadow-md transition-all cursor-pointer"
                   >
                     <span>Mark Case Fully Resolved</span>
-                    <CheckSquare className="ml-1.5 h-3.5 w-3.5" />
+                    <CheckSquare className="ml-1.5 h-3.5 w-3.5 text-emerald-600" />
                   </button>
                 </form>
               </div>
@@ -703,7 +701,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ currentUser }) =
                   />
                   <button
                     type="submit"
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                    className="rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 border border-emerald-500/20 px-3 flex items-center justify-center transition-all shrink-0 cursor-pointer"
                   >
                     <Send className="h-3.5 w-3.5" />
                   </button>

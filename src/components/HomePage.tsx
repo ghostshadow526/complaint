@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   ArrowRight, ShieldCheck, HeartHandshake, FileText, CheckCircle2, 
   HelpCircle, Activity, MapPin, ClipboardList, Sparkles, Shield, 
-  User, Clock, MessageSquare, AlertTriangle, ChevronRight, Landmark, Info 
+  User, Clock, MessageSquare, AlertTriangle, ChevronRight, Landmark, Info,
+  Droplet, Zap, Hammer
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -13,6 +14,8 @@ interface HomePageProps {
 
 export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [heroImageError, setHeroImageError] = useState(false);
 
   const stats = [
     { label: 'Complaints Resolved', value: '1,428', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
@@ -25,25 +28,25 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
     { 
       title: 'Roads & Highways', 
       desc: 'Reporting express lane asphalt craters, deep potholes, failing bridge joints, and damaged road safety rails.', 
-      img: 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1596567130084-07e10955699c?auto=format&fit=crop&q=80&w=800',
       tag: '42 resolved this week'
     },
     { 
       title: 'Hospitals & Primary Health Centres', 
       desc: 'Equipment failures, broken reception seating, clinic maintenance defects, and local hospital facility complaints.', 
-      img: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce2?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800',
       tag: '100% staff dispatched'
     },
     { 
       title: 'Water Supply & Public Drainage', 
       desc: 'High-pressure water main bursts, flooded pathways, heavy street gutter blockages, and sewage leaks.', 
-      img: 'https://images.unsplash.com/photo-1542013936693-8848e5744a9b?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=800',
       tag: 'Under 2hr response time'
     },
     { 
       title: 'Power Grids & Public Lighting', 
       desc: 'Reporting fallen electrical utility poles, damaged community transformers, and broken public streetlights.', 
-      img: 'https://images.unsplash.com/photo-1509395062183-67c5ad6faff9?q=80&w=800&auto=format&fit=crop',
+      img: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=800',
       tag: 'Active utility tracking'
     }
   ];
@@ -133,16 +136,16 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 pt-2">
               <button 
                 onClick={() => onGetStarted('claimant')}
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-300 backdrop-blur-md border border-emerald-500/40 font-bold text-sm shadow-xl transition-all transform hover:-translate-y-0.5 cursor-pointer"
               >
                 File a Complaint
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <ArrowRight className="ml-2 w-4 h-4 text-emerald-400" />
               </button>
               <button 
                 onClick={() => onGetStarted('admin')}
-                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white backdrop-blur-md border border-white/25 font-bold text-sm transition-all shadow-lg cursor-pointer"
+                className="inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/15 text-stone-200 backdrop-blur-md border border-white/10 hover:border-white/20 font-bold text-sm transition-all shadow-lg cursor-pointer animate-pulse"
               >
-                <Shield className="mr-2 w-4 h-4 text-emerald-400" />
+                <Shield className="mr-2 w-4 h-4 text-emerald-400 animate-bounce" />
                 Administrative Terminal
               </button>
             </div>
@@ -162,13 +165,26 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
           {/* Hero graphic / Beautiful Image frame with Glass overlay */}
           <div className="flex-1 w-full max-w-xl">
             <div className="relative rounded-2xl border border-white/10 shadow-2xl overflow-hidden aspect-[16/10] group">
-              {/* Actual realistic civic image */}
-              <img 
-                src="https://images.unsplash.com/photo-1618826411640-d6df44dd3f7a?q=80&w=1000&auto=format&fit=crop" 
-                alt="Third Mainland Bridge, Lagos, Nigeria" 
-                referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-              />
+              {/* Actual realistic civic image with failure recovery */}
+              {!heroImageError ? (
+                <img 
+                  src="https://images.unsplash.com/photo-1618826411640-d6df44dd3f7a?q=80&w=1000&auto=format&fit=crop" 
+                  alt="Third Mainland Bridge, Lagos, Nigeria" 
+                  referrerPolicy="no-referrer"
+                  onError={() => setHeroImageError(true)}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#0c231f] via-emerald-950 to-stone-900 flex flex-col items-center justify-center p-6 text-center text-emerald-400">
+                  <Landmark className="w-16 h-16 text-emerald-400 mb-3 animate-pulse" />
+                  <span className="text-sm font-black uppercase tracking-widest text-white">
+                    Nigeria Works Infrastructure Terminal
+                  </span>
+                  <span className="text-[10px] text-emerald-300/80 mt-1.5 max-w-xs leading-relaxed font-mono uppercase tracking-wider">
+                    Lagos State & FCT Commissioner Resolution System
+                  </span>
+                </div>
+              )}
               {/* Dark overlay with gradient for glass contrast */}
               <div className="absolute inset-0 bg-linear-to-t from-[#0c231f]/90 via-[#0c231f]/30 to-transparent" />
               
@@ -224,21 +240,34 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
               key={idx} 
               className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-all group"
             >
-              {/* Photo */}
-              <div className="sm:w-48 h-48 sm:h-auto relative overflow-hidden flex-shrink-0 bg-stone-100">
-                <img 
-                  src={cat.img} 
-                  alt={cat.title} 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                />
+              {/* Photo with high-fidelity fallback */}
+              <div className="sm:w-48 h-48 sm:h-auto relative overflow-hidden flex-shrink-0 bg-stone-100 flex items-center justify-center">
+                {!imageErrors[idx] ? (
+                  <img 
+                    src={cat.img} 
+                    alt={cat.title} 
+                    referrerPolicy="no-referrer"
+                    onError={() => setImageErrors(prev => ({ ...prev, [idx]: true }))}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                  />
+                ) : (
+                  <div className="w-full h-full min-h-[192px] sm:min-h-[220px] flex flex-col items-center justify-center bg-gradient-to-br from-[#0c231f] to-stone-900 text-emerald-400 p-6 text-center">
+                    {idx === 0 && <Hammer className="w-12 h-12 text-emerald-400 animate-bounce mb-2" />}
+                    {idx === 1 && <Activity className="w-12 h-12 text-emerald-400 animate-pulse mb-2" />}
+                    {idx === 2 && <Droplet className="w-12 h-12 text-emerald-400 animate-bounce mb-2" />}
+                    {idx === 3 && <Zap className="w-12 h-12 text-emerald-400 animate-pulse mb-2" />}
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                      {cat.title}
+                    </span>
+                  </div>
+                )}
                 <div className="absolute top-3 left-3 bg-[#0c231f]/80 backdrop-blur-xs px-2.5 py-1 rounded text-[9px] font-bold text-emerald-200 uppercase tracking-wide">
                   {cat.tag}
                 </div>
               </div>
 
               {/* Text content */}
-              <div className="p-6 flex flex-col justify-between">
+              <div className="p-6 flex flex-col justify-between flex-1">
                 <div className="space-y-2">
                   <h3 className="text-base font-bold text-stone-950 group-hover:text-emerald-700 transition-colors">
                     {cat.title}
@@ -250,7 +279,7 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
                 
                 <button 
                   onClick={() => onGetStarted('claimant')}
-                  className="mt-4 inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors self-start cursor-pointer"
+                  className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 backdrop-blur-xs border border-emerald-500/20 font-bold text-xs transition-all cursor-pointer shadow-xs self-start"
                 >
                   Report issue in this division
                   <ChevronRight className="w-3.5 h-3.5 ml-1" />
@@ -393,13 +422,13 @@ export function HomePage({ onGetStarted, onExploreClaims }: HomePageProps) {
           <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
             <button 
               onClick={() => onGetStarted('claimant')}
-              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-sm shadow-lg transition-transform hover:-translate-y-0.5 cursor-pointer"
+              className="px-8 py-3.5 bg-emerald-500/10 hover:bg-emerald-500/25 text-emerald-300 backdrop-blur-md border border-emerald-500/40 rounded-xl font-bold text-sm shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
             >
               Report First Incident
             </button>
             <button 
               onClick={() => onGetStarted('admin')}
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/15 border border-white/25 text-white rounded-xl font-bold text-sm transition-all cursor-pointer"
+              className="px-8 py-3.5 bg-white/5 hover:bg-white/15 border border-white/10 hover:border-white/20 text-stone-200 backdrop-blur-md rounded-xl font-bold text-sm transition-all cursor-pointer"
             >
               Staff Portal Access
             </button>
