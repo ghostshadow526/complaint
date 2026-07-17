@@ -1,0 +1,6 @@
+{
+  "name": "MUFTASEER NAIJA COMPLAINT HUB",
+  "description": "A sleek, professional citizen complaints and infrastructure resolution portal for monitoring, reporting, and tracking community issues across Nigeria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
